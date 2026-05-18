@@ -1,6 +1,6 @@
 # SandboxDetector
 
-**Production-grade, plugin-based sandbox and virtualization detector for Windows.**
+**Plugin-based sandbox and virtualization detector for Windows.**
 
 A C++17 library and CLI tool that detects analysis environments (VMs, sandboxes, debuggers)
 using a rich plugin architecture. Every detection technique is fully implemented —
