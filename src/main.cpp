@@ -19,6 +19,14 @@
 #include "plugins/AntiDebugPlugin.hpp"
 #include "plugins/HardwarePlugin.hpp"
 #include "plugins/WmiPlugin.hpp"
+#include "plugins/NetworkPlugin.hpp"
+#include "plugins/FileSystemPlugin.hpp"
+#include "plugins/EnvironmentPlugin.hpp"
+#include "plugins/MemoryPlugin.hpp"
+#include "plugins/NativeApiPlugin.hpp"
+#include "plugins/ExceptionPlugin.hpp"
+#include "plugins/TokenPrivilegePlugin.hpp"
+#include "plugins/ServicePlugin.hpp"
 
 #include <iostream>
 #include <string>
@@ -58,10 +66,12 @@ static const char* RESET   = "\033[0m";
 static void printBanner() {
     std::cout << WHITE
               << "  ╔═══════════════════════════════════════════════════╗\n"
-              << "  ║          SANDBOX DETECTOR  v2.0.0                 ║\n"
+              << "  ║          SANDBOX DETECTOR  v3.0.0                 ║\n"
               << "  ║   Plugin-Based Virtualization & Sandbox Detector  ║\n"
               << "  ║   Plugins: Timing | Hypervisor | Registry |       ║\n"
-              << "  ║            Process | AntiDebug | HW | WMI         ║\n"
+              << "  ║            Process | AntiDebug | HW | WMI |       ║\n"
+              << "  ║            Network | FileSystem | Env | Memory |  ║\n"
+              << "  ║            NativeAPI | Exception | Token | Svc    ║\n"
               << "  ╚═══════════════════════════════════════════════════╝\n"
               << RESET << "\n";
 }
@@ -97,7 +107,9 @@ static void printUsage(const char* exe) {
               << "  --timeout MS          Global timeout in ms (default: 30000)\n"
               << "  --category CATS       Filter categories (comma-separated):\n"
               << "                        timing,hypervisor,registry,process,\n"
-              << "                        antidebug,hardware,wmi,all\n"
+              << "                        antidebug,hardware,wmi,network,\n"
+              << "                        filesystem,environment,memory,\n"
+              << "                        nativeapi,exception,token,all\n"
               << "  -h, --help            Show this help\n\n";
 }
 
@@ -142,14 +154,21 @@ static DetectionCategory parseCategoryFilter(const std::string& filter) {
         token.erase(0, token.find_first_not_of(" \t"));
         token.erase(token.find_last_not_of(" \t") + 1);
 
-        if      (token == "timing")      result = result | DetectionCategory::Timing;
-        else if (token == "hypervisor")  result = result | DetectionCategory::Hypervisor;
-        else if (token == "registry")    result = result | DetectionCategory::Registry;
-        else if (token == "process")     result = result | DetectionCategory::Process;
-        else if (token == "antidebug")   result = result | DetectionCategory::AntiDebug;
-        else if (token == "hardware")    result = result | DetectionCategory::Hardware;
-        else if (token == "wmi")         result = result | DetectionCategory::WMI;
-        else if (token == "all")         result = result | DetectionCategory::All;
+        if      (token == "timing")        result = result | DetectionCategory::Timing;
+        else if (token == "hypervisor")    result = result | DetectionCategory::Hypervisor;
+        else if (token == "registry")      result = result | DetectionCategory::Registry;
+        else if (token == "process")       result = result | DetectionCategory::Process;
+        else if (token == "antidebug")     result = result | DetectionCategory::AntiDebug;
+        else if (token == "hardware")      result = result | DetectionCategory::Hardware;
+        else if (token == "wmi")           result = result | DetectionCategory::WMI;
+        else if (token == "network")       result = result | DetectionCategory::Network;
+        else if (token == "filesystem")    result = result | DetectionCategory::FileSystem;
+        else if (token == "environment")   result = result | DetectionCategory::EnvironmentVariables;
+        else if (token == "memory")        result = result | DetectionCategory::Memory;
+        else if (token == "nativeapi")     result = result | DetectionCategory::NativeAPI;
+        else if (token == "exception")     result = result | DetectionCategory::Exception;
+        else if (token == "token")         result = result | DetectionCategory::NativeAPI;
+        else if (token == "all")           result = result | DetectionCategory::All;
         else {
             std::cerr << "Unknown category: " << token << "\n";
         }
@@ -285,6 +304,14 @@ int main(int argc, char* argv[]) {
         mgr.registerPlugin(std::make_unique<Plugins::ProcessPlugin>(), cfg);
         mgr.registerPlugin(std::make_unique<Plugins::HardwarePlugin>(), cfg);
         mgr.registerPlugin(std::make_unique<Plugins::WmiPlugin>(), cfg);
+        mgr.registerPlugin(std::make_unique<Plugins::NetworkPlugin>(), cfg);
+        mgr.registerPlugin(std::make_unique<Plugins::FileSystemPlugin>(), cfg);
+        mgr.registerPlugin(std::make_unique<Plugins::EnvironmentPlugin>(), cfg);
+        mgr.registerPlugin(std::make_unique<Plugins::MemoryPlugin>(), cfg);
+        mgr.registerPlugin(std::make_unique<Plugins::NativeApiPlugin>(), cfg);
+        mgr.registerPlugin(std::make_unique<Plugins::ExceptionPlugin>(), cfg);
+        mgr.registerPlugin(std::make_unique<Plugins::TokenPrivilegePlugin>(), cfg);
+        mgr.registerPlugin(std::make_unique<Plugins::ServicePlugin>(), cfg);
     }
 
     // Load external plugins from directory

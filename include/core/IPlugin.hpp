@@ -145,7 +145,7 @@ using PluginFactory = std::function<std::unique_ptr<IPlugin>()>;
 //   extern "C" __declspec(dllexport) void DestroyPlugin(SandboxDetector::IPlugin*);
 //   extern "C" __declspec(dllexport) const char* GetPluginApiVersion();
 
-constexpr const char* PLUGIN_API_VERSION = "1.0.0";
+constexpr const char* PLUGIN_API_VERSION = "2.0.0";
 
 } // namespace SandboxDetector
 

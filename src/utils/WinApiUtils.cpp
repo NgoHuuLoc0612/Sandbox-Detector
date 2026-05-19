@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")

@@ -1,3 +1,4 @@
+#include "utils/SehCompat.hpp"
 // PluginManagerSEH.cpp
 // Compiled without /EHa (/EHs-c-) so __try/__except works correctly.
 // IMPORTANT: No C++ objects with destructors can be declared or assigned
@@ -34,6 +35,7 @@ SehRunResult runPluginWithSEH(IPlugin* plugin, PluginResult* outResult)
     // in this frame, satisfying /EHs-c- and avoiding C2712.
     void (*pfn)(IPlugin*, PluginResult*) = &callRun;
 
+#ifdef _MSC_VER
     __try {
         pfn(plugin, outResult);
         r.succeeded = true;
@@ -41,6 +43,17 @@ SehRunResult runPluginWithSEH(IPlugin* plugin, PluginResult* outResult)
     __except (r.exceptionCode = GetExceptionCode(), EXCEPTION_EXECUTE_HANDLER) {
         outResult->executed = false;
     }
+#else
+    // On non-MSVC (MinGW/GCC), SEH is unavailable.
+    // Run plugin directly; C++ exceptions propagate normally.
+    try {
+        pfn(plugin, outResult);
+        r.succeeded = true;
+    } catch (...) {
+        outResult->executed = false;
+        r.exceptionCode = 0xFFFFFFFF; // sentinel: unknown exception
+    }
+#endif
 
     return r;
 }

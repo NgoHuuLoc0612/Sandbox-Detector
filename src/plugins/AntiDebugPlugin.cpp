@@ -1,3 +1,4 @@
+#include "utils/SehCompat.hpp"
 #include "plugins/AntiDebugPlugin.hpp"
 #include "utils/WinApiUtils.hpp"
 
@@ -543,6 +544,7 @@ DetectionIndicator AntiDebugPlugin::checkCloseHandleTrick() {
     // Simplest correct approach for x64 MSVC: use __try in a plain helper.
     struct CloseHandleHelper {
         static bool tryClose(HANDLE h) {
+#ifdef _MSC_VER
             // This nested struct method has no C++ objects — __try is safe.
             __try {
                 CloseHandle(h);
@@ -553,6 +555,11 @@ DetectionIndicator AntiDebugPlugin::checkCloseHandleTrick() {
                       : EXCEPTION_CONTINUE_SEARCH) {
                 return true;
             }
+#else
+            // SEH unavailable on non-MSVC; fall back to no-op
+            CloseHandle(h);
+            return false;
+#endif
         }
     };
     debuggerCaught = CloseHandleHelper::tryClose(hInvalid);

@@ -286,7 +286,17 @@ DetectionIndicator HypervisorPlugin::checkIdtBaseAddress() {
     struct IDTR { uint16_t limit; uintptr_t base; } idtr{};
     #pragma pack(pop)
 
+#if defined(_MSC_VER)
     __sidt(&idtr);
+#elif defined(__GNUC__) || defined(__clang__)
+    #if defined(_WIN64) || defined(__x86_64__)
+        __asm__ volatile("sidt %0" : "=m"(idtr));
+    #elif defined(_WIN32) || defined(__i386__)
+        __asm__ volatile("sidt %0" : "=m"(idtr));
+    #else
+        // Unsupported architecture — leave idtr zeroed
+    #endif
+#endif
 
     ind.rawValue = static_cast<uint64_t>(idtr.base);
 
